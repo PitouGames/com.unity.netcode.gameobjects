@@ -12,6 +12,10 @@ Additional documentation and release notes are available at [Multiplayer Documen
 
 - Added serializer for `Pose` (#2675)
 
+### Fixed
+
+- Fixed usage of `NetworkList` throwing exception when used without a NetworkManager in scene. (#2539)
+
 ## [1.13.1] - 2025-07-07
 
 ### Added
