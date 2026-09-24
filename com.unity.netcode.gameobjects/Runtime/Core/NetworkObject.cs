@@ -750,6 +750,8 @@ namespace Unity.Netcode
 
         private void OnDestroy()
         {
+            SceneManager.activeSceneChanged -= CurrentlyActiveSceneChanged;
+            
             // If no NetworkManager is assigned, then just exit early
             if (!NetworkManager)
             {
@@ -1278,6 +1280,10 @@ namespace Unity.Netcode
         // If you couldn't find your parent, we put you into OrphanChildren set and every time we spawn another NetworkObject locally due to replication,
         // we call CheckOrphanChildren() method and quickly iterate over OrphanChildren set and see if we can reparent/adopt one.
         internal static HashSet<NetworkObject> OrphanChildren = new HashSet<NetworkObject>();
+#if UNITY_EDITOR
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStaticsOnLoad() => OrphanChildren = new HashSet<NetworkObject>();
+#endif
 
         internal bool ApplyNetworkParenting(bool removeParent = false, bool ignoreNotSpawned = false, bool orphanedChildPass = false, bool enableNotification = true)
         {

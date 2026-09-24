@@ -18,6 +18,15 @@ namespace Unity.Netcode.Components
     [HelpURL(HelpUrls.NetworkTransform)]
     public class NetworkTransform : NetworkBehaviour
     {
+#if UNITY_EDITOR
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStaticsOnLoad()
+        {
+            TrackByStateId = false;
+            s_NetworkTickRegistration = new Dictionary<NetworkManager, NetworkTransformTickRegistration>();
+            s_TickSynchPosition = 0;
+        }
+#endif
         /// <summary>
         /// The default position change threshold value.
         /// Any changes above this threshold will be replicated.

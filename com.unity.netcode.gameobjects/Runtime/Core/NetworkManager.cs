@@ -18,6 +18,17 @@ namespace Unity.Netcode
     [HelpURL(HelpUrls.NetworkManager)]
     public class NetworkManager : MonoBehaviour, INetworkUpdateSystem
     {
+#if UNITY_EDITOR
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStaticsOnLoad()
+        {
+            Singleton = null;
+            OnInstantiated = null;
+            OnDestroying = null;
+            OnSingletonReady = null;
+            OnNetworkManagerReset = null;
+        }
+#endif
         /// <summary>
         /// Subscribe to this static event to get notifications when a <see cref="NetworkManager"/> instance has been instantiated.
         /// </summary>
