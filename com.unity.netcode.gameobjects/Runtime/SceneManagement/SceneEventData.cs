@@ -106,11 +106,11 @@ namespace Unity.Netcode
 
         internal uint ActiveSceneHash;
         internal uint SceneHash;
-        internal int SceneHandle;
+        internal NetworkSceneHandle SceneHandle;
 
         // Used by the client during synchronization
         internal uint ClientSceneHash;
-        internal int NetworkSceneHandle;
+        internal NetworkSceneHandle NetworkSceneHandle;
 
         /// Only used for <see cref="SceneEventType.Synchronize"/> scene events, this assures permissions when writing
         /// NetworkVariable information.  If that process changes, then we need to update this
@@ -147,7 +147,7 @@ namespace Unity.Netcode
         internal List<ulong> ClientsTimedOut;
 
         internal Queue<uint> ScenesToSynchronize;
-        internal Queue<uint> SceneHandlesToSynchronize;
+        internal Queue<NetworkSceneHandle> SceneHandlesToSynchronize;
 
         internal LoadSceneMode ClientSynchronizationMode;
 
@@ -166,10 +166,10 @@ namespace Unity.Netcode
         /// </summary>
         /// <param name="sceneIndex"></param>
         /// <param name="sceneHandle"></param>
-        internal void AddSceneToSynchronize(uint sceneHash, int sceneHandle)
+        internal void AddSceneToSynchronize(uint sceneHash, NetworkSceneHandle sceneHandle)
         {
             ScenesToSynchronize.Enqueue(sceneHash);
-            SceneHandlesToSynchronize.Enqueue((uint)sceneHandle);
+            SceneHandlesToSynchronize.Enqueue(sceneHandle);
         }
 
         /// <summary>
@@ -187,9 +187,9 @@ namespace Unity.Netcode
         /// Gets the next scene handle to be loaded for approval and/or late joining
         /// </summary>
         /// <returns></returns>
-        internal int GetNextSceneSynchronizationHandle()
+        internal NetworkSceneHandle GetNextSceneSynchronizationHandle()
         {
-            return (int)SceneHandlesToSynchronize.Dequeue();
+            return SceneHandlesToSynchronize.Dequeue();
         }
 
         /// <summary>
@@ -237,7 +237,7 @@ namespace Unity.Netcode
 
             if (SceneHandlesToSynchronize == null)
             {
-                SceneHandlesToSynchronize = new Queue<uint>();
+                SceneHandlesToSynchronize = new Queue<NetworkSceneHandle>();
             }
             else
             {
@@ -361,7 +361,9 @@ namespace Unity.Netcode
         {
             m_DespawnedInSceneObjectsSync.Clear();
             // Find all active and non-active in-scene placed NetworkObjects
-#if UNITY_2023_1_OR_NEWER
+#if UNITY_6000_4_OR_NEWER
+            var inSceneNetworkObjects = UnityEngine.Object.FindObjectsByType<NetworkObject>(UnityEngine.FindObjectsInactive.Include).Where((c) => c.NetworkManager == m_NetworkManager);
+#elif UNITY_2023_1_OR_NEWER
             var inSceneNetworkObjects = UnityEngine.Object.FindObjectsByType<NetworkObject>(UnityEngine.FindObjectsInactive.Include, UnityEngine.FindObjectsSortMode.InstanceID).Where((c) => c.NetworkManager == m_NetworkManager);
 #else
             var inSceneNetworkObjects = UnityEngine.Object.FindObjectsOfType<NetworkObject>(includeInactive: true).Where((c) => c.NetworkManager == m_NetworkManager);
@@ -716,9 +718,9 @@ namespace Unity.Netcode
         {
             m_NetworkObjectsSync.Clear();
             reader.ReadValueSafe(out uint[] scenesToSynchronize);
-            reader.ReadValueSafe(out uint[] sceneHandlesToSynchronize);
+            reader.ReadValueSafe(out NetworkSceneHandle[] sceneHandlesToSynchronize);
             ScenesToSynchronize = new Queue<uint>(scenesToSynchronize);
-            SceneHandlesToSynchronize = new Queue<uint>(sceneHandlesToSynchronize);
+            SceneHandlesToSynchronize = new Queue<NetworkSceneHandle>(sceneHandlesToSynchronize);
 
             // is not packed!
             reader.ReadValueSafe(out int sizeToCopy);
@@ -795,7 +797,9 @@ namespace Unity.Netcode
 
             if (networkObjectsToRemove.Length > 0)
             {
-#if UNITY_2023_1_OR_NEWER
+#if UNITY_6000_4_OR_NEWER
+                var networkObjects = UnityEngine.Object.FindObjectsByType<NetworkObject>();
+#elif UNITY_2023_1_OR_NEWER
                 var networkObjects = UnityEngine.Object.FindObjectsByType<NetworkObject>(UnityEngine.FindObjectsSortMode.InstanceID);
 #else
                 var networkObjects = UnityEngine.Object.FindObjectsOfType<NetworkObject>();
@@ -909,12 +913,12 @@ namespace Unity.Netcode
             // Process all de-spawned in-scene NetworkObjects for this network session
             m_DespawnedInSceneObjects.Clear();
             InternalBuffer.ReadValueSafe(out int despawnedObjectsCount);
-            var sceneCache = new Dictionary<int, Dictionary<uint, NetworkObject>>();
+            var sceneCache = new Dictionary<NetworkSceneHandle, Dictionary<uint, NetworkObject>>();
 
             for (int i = 0; i < despawnedObjectsCount; i++)
             {
                 // We just need to get the scene
-                InternalBuffer.ReadValueSafe(out int networkSceneHandle);
+                InternalBuffer.ReadValueSafe(out NetworkSceneHandle networkSceneHandle);
                 InternalBuffer.ReadValueSafe(out uint globalObjectIdHash);
                 var sceneRelativeNetworkObjects = new Dictionary<uint, NetworkObject>();
                 if (!sceneCache.ContainsKey(networkSceneHandle))
@@ -927,7 +931,10 @@ namespace Unity.Netcode
                             var objectRelativeScene = m_NetworkManager.SceneManager.ScenesLoaded[localSceneHandle];
 
                             // Find all active and non-active in-scene placed NetworkObjects
-#if UNITY_2023_1_OR_NEWER
+#if UNITY_6000_4_OR_NEWER
+                            var inSceneNetworkObjects = UnityEngine.Object.FindObjectsByType<NetworkObject>(UnityEngine.FindObjectsInactive.Include).Where((c) =>
+                            c.GetSceneOriginHandle() == localSceneHandle && (c.IsSceneObject != false)).ToList();
+#elif UNITY_2023_1_OR_NEWER
                             var inSceneNetworkObjects = UnityEngine.Object.FindObjectsByType<NetworkObject>(UnityEngine.FindObjectsInactive.Include, UnityEngine.FindObjectsSortMode.InstanceID).Where((c) =>
                             c.GetSceneOriginHandle() == localSceneHandle && (c.IsSceneObject != false)).ToList();
 #else
@@ -969,7 +976,7 @@ namespace Unity.Netcode
                     sceneRelativeNetworkObjects[globalObjectIdHash].InvokeBehaviourNetworkDespawn();
                     if (!m_NetworkManager.SceneManager.ScenePlacedObjects.ContainsKey(globalObjectIdHash))
                     {
-                        m_NetworkManager.SceneManager.ScenePlacedObjects.Add(globalObjectIdHash, new Dictionary<int, NetworkObject>());
+                        m_NetworkManager.SceneManager.ScenePlacedObjects.Add(globalObjectIdHash, new Dictionary<NetworkSceneHandle, NetworkObject>());
                     }
 
                     if (!m_NetworkManager.SceneManager.ScenePlacedObjects[globalObjectIdHash].ContainsKey(sceneRelativeNetworkObjects[globalObjectIdHash].GetSceneOriginHandle()))
@@ -1116,13 +1123,12 @@ namespace Unity.Netcode
             // Just always assure this has no entries
             sceneManager.ObjectsMigratedIntoNewScene.Clear();
             var numberOfScenes = 0;
-            var sceneHandle = 0;
             var objectCount = 0;
             var networkObjectId = (ulong)0;
             reader.ReadValueSafe(out numberOfScenes);
             for (int i = 0; i < numberOfScenes; i++)
             {
-                reader.ReadValueSafe(out sceneHandle);
+                reader.ReadValueSafe(out NetworkSceneHandle sceneHandle);
                 sceneManager.ObjectsMigratedIntoNewScene.Add(sceneHandle, new List<NetworkObject>());
                 reader.ReadValueSafe(out objectCount);
                 for (int j = 0; j < objectCount; j++)
@@ -1152,19 +1158,18 @@ namespace Unity.Netcode
             var sceneManager = m_NetworkManager.SceneManager;
             var spawnManager = m_NetworkManager.SpawnManager;
             var numberOfScenes = 0;
-            var sceneHandle = 0;
             var objectCount = 0;
             var networkObjectId = (ulong)0;
 
             var deferredObjectsMovedEvent = new NetworkSceneManager.DeferredObjectsMovedEvent()
             {
-                ObjectsMigratedTable = new Dictionary<int, List<ulong>>()
+                ObjectsMigratedTable = new Dictionary<NetworkSceneHandle, List<ulong>>()
             };
 
             reader.ReadValueSafe(out numberOfScenes);
             for (int i = 0; i < numberOfScenes; i++)
             {
-                reader.ReadValueSafe(out sceneHandle);
+                reader.ReadValueSafe(out NetworkSceneHandle sceneHandle);
                 deferredObjectsMovedEvent.ObjectsMigratedTable.Add(sceneHandle, new List<ulong>());
                 reader.ReadValueSafe(out objectCount);
                 for (int j = 0; j < objectCount; j++)

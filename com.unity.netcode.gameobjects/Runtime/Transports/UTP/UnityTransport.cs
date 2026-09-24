@@ -1,7 +1,7 @@
 // NetSim Implementation compilation boilerplate
 // All references to UNITY_MP_TOOLS_NETSIM_IMPLEMENTATION_ENABLED should be defined in the same way,
 // as any discrepancies are likely to result in build failures
-#if UNITY_EDITOR || (DEVELOPMENT_BUILD && !UNITY_MP_TOOLS_NETSIM_DISABLED_IN_DEVELOP) || (!DEVELOPMENT_BUILD && UNITY_MP_TOOLS_NETSIM_ENABLED_IN_RELEASE)
+#if (DEBUG && !UNITY_MP_TOOLS_NETSIM_DISABLED_IN_DEVELOP) || (!DEBUG && UNITY_MP_TOOLS_NETSIM_ENABLED_IN_RELEASE)
 #define UNITY_MP_TOOLS_NETSIM_IMPLEMENTATION_ENABLED
 #endif
 
@@ -455,8 +455,26 @@ namespace Unity.Netcode.Transports.UTP
             public float PacketLoss;
         };
 
+#if UNITY_6000_2_OR_NEWER
+        internal static event Action<EntityId, NetworkDriver> OnDriverInitialized;
+        internal static event Action<EntityId> OnDisposingDriver;
+#endif
         internal static event Action<int, NetworkDriver> TransportInitialized;
         internal static event Action<int> TransportDisposed;
+#if UNITY_EDITOR
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStaticsOnLoad()
+        {
+            s_DriverConstructor = null;
+#if UNITY_6000_2_OR_NEWER
+            OnDriverInitialized = null;
+            OnDisposingDriver = null;
+#endif
+            TransportInitialized = null;
+            TransportDisposed = null;
+        }
+#endif
+
         internal NetworkDriver NetworkDriver => m_Driver;
 
         private PacketLossCache m_PacketLossCache = new PacketLossCache();
@@ -505,7 +523,13 @@ namespace Unity.Netcode.Transports.UTP
                 out m_UnreliableSequencedFragmentedPipeline,
                 out m_ReliableSequencedPipeline);
 
-            TransportInitialized?.Invoke(GetInstanceID(), NetworkDriver);
+#if UNITY_6000_2_OR_NEWER
+            var entityId = GetEntityId();
+            OnDriverInitialized?.Invoke(entityId, m_Driver);
+            TransportInitialized?.Invoke(entityId.GetHashCode(), m_Driver);
+#else
+            TransportInitialized?.Invoke(GetInstanceID(), m_Driver);
+#endif
         }
 
         private void DisposeInternals()
@@ -524,7 +548,13 @@ namespace Unity.Netcode.Transports.UTP
 
             m_SendQueue.Clear();
 
+#if UNITY_6000_2_OR_NEWER
+            var entityId = GetEntityId();
+            OnDisposingDriver?.Invoke(entityId);
+            TransportDisposed?.Invoke(entityId.GetHashCode());
+#else
             TransportDisposed?.Invoke(GetInstanceID());
+#endif
         }
 
         private NetworkPipeline SelectSendPipeline(NetworkDelivery delivery)
@@ -1672,7 +1702,7 @@ namespace Unity.Netcode.Transports.UTP
 
 #if UTP_TRANSPORT_2_0_ABOVE && UNITY_MP_TOOLS_NETSIM_IMPLEMENTATION_ENABLED
             ConfigureSimulatorForUtp2();
-#elif !UTP_TRANSPORT_2_0_ABOVE && (UNITY_EDITOR || DEVELOPMENT_BUILD)
+#elif !UTP_TRANSPORT_2_0_ABOVE && DEBUG
             ConfigureSimulatorForUtp1();
 #endif
 
@@ -1793,7 +1823,7 @@ namespace Unity.Netcode.Transports.UTP
             out NetworkPipeline unreliableSequencedFragmentedPipeline,
             out NetworkPipeline reliableSequencedPipeline)
         {
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+#if DEBUG
             if (DebugSimulator.PacketDelayMS > 0 || DebugSimulator.PacketDropRate > 0)
             {
                 unreliableFragmentedPipeline = driver.CreatePipeline(

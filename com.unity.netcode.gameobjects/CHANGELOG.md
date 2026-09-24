@@ -11,6 +11,12 @@ Additional documentation and release notes are available at [Multiplayer Documen
 ### Changed
 
 - First pass of CoreCLR engine API changes.
+- Replaced define usages of `DEVELOPMENT_BUILD || UNITY_EDITOR` and a few niche uses of `DEVELOPMENT_BUILD` with `DEBUG`.
+- Replaced `GetInstanceID()` usages with `GetInstanceID()` for Unity 6.2+
+
+### Removed
+
+- Removed usages of `FindObjectsSortMode` for Unity 6.4+
 
 ## [1.15.0 - Pitou] - 2025-11-19
 

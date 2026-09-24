@@ -29,7 +29,7 @@ namespace Unity.Netcode.RuntimeTests
         }
 
         /// <summary>
-        /// Tests the NetwokConfig NetworkPrefabsList initialization during NetworkManager's Init method to make sure that
+        /// Tests the NetworkConfig NetworkPrefabsList initialization during NetworkManager's Init method to make sure that
         /// it will still initialize but remove the invalid prefabs
         /// </summary>
         [Test]
@@ -185,8 +185,9 @@ namespace Unity.Netcode.RuntimeTests
         {
             //Stop, shutdown, and destroy
             NetworkManagerHelper.ShutdownNetworkManager();
-
-#if UNITY_2023_1_OR_NEWER
+#if UNITY_6000_4_OR_NEWER
+            var networkObjects = UnityEngine.Object.FindObjectsByType<NetworkObject>().ToList();
+#elif UNITY_2023_1_OR_NEWER
             var networkObjects = UnityEngine.Object.FindObjectsByType<NetworkObject>(FindObjectsSortMode.InstanceID).ToList();
 #else
             var networkObjects = UnityEngine.Object.FindObjectsOfType<NetworkObject>().ToList();

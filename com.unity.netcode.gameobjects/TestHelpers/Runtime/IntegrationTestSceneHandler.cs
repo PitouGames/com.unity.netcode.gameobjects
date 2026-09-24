@@ -23,7 +23,7 @@ namespace Unity.Netcode.TestHelpers.Runtime
             public Scene Scene;
         }
 
-        internal static Dictionary<NetworkManager, Dictionary<string, Dictionary<int, SceneEntry>>> SceneNameToSceneHandles = new Dictionary<NetworkManager, Dictionary<string, Dictionary<int, SceneEntry>>>();
+        internal static Dictionary<NetworkManager, Dictionary<string, Dictionary<NetworkSceneHandle, SceneEntry>>> SceneNameToSceneHandles = new Dictionary<NetworkManager, Dictionary<string, Dictionary<NetworkSceneHandle, SceneEntry>>>();
 
         // All IntegrationTestSceneHandler instances register their associated NetworkManager
         internal static List<NetworkManager> NetworkManagers = new List<NetworkManager>();
@@ -156,8 +156,10 @@ namespace Unity.Netcode.TestHelpers.Runtime
         /// <param name="networkManager">the relative NetworkManager</param>
         private static void ProcessInSceneObjects(Scene scene, NetworkManager networkManager)
         {
-            // Get all in-scene placed NeworkObjects that were instantiated when this scene loaded
-#if UNITY_2023_1_OR_NEWER
+            // Get all in-scene placed NetworkObjects that were instantiated when this scene loaded
+#if UNITY_6000_4_OR_NEWER
+            var inSceneNetworkObjects = Object.FindObjectsByType<NetworkObject>().Where((c) => c.IsSceneObject != false && c.GetSceneOriginHandle() == scene.handle);
+#elif UNITY_2023_1_OR_NEWER
             var inSceneNetworkObjects = Object.FindObjectsByType<NetworkObject>(FindObjectsSortMode.InstanceID).Where((c) => c.IsSceneObject != false && c.GetSceneOriginHandle() == scene.handle);
 #else
             var inSceneNetworkObjects = Object.FindObjectsOfType<NetworkObject>().Where((c) => c.IsSceneObject != false && c.GetSceneOriginHandle() == scene.handle);
@@ -403,7 +405,7 @@ namespace Unity.Netcode.TestHelpers.Runtime
             SceneNameToSceneHandles.Clear();
         }
 
-        public void StopTrackingScene(int handle, string name, NetworkManager networkManager)
+        public void StopTrackingScene(NetworkSceneHandle handle, string name, NetworkManager networkManager)
         {
             if (!SceneNameToSceneHandles.ContainsKey(networkManager))
             {
@@ -427,12 +429,12 @@ namespace Unity.Netcode.TestHelpers.Runtime
         {
             if (!SceneNameToSceneHandles.ContainsKey(networkManager))
             {
-                SceneNameToSceneHandles.Add(networkManager, new Dictionary<string, Dictionary<int, SceneEntry>>());
+                SceneNameToSceneHandles.Add(networkManager, new Dictionary<string, Dictionary<NetworkSceneHandle, SceneEntry>>());
             }
 
             if (!SceneNameToSceneHandles[networkManager].ContainsKey(scene.name))
             {
-                SceneNameToSceneHandles[networkManager].Add(scene.name, new Dictionary<int, SceneEntry>());
+                SceneNameToSceneHandles[networkManager].Add(scene.name, new Dictionary<NetworkSceneHandle, SceneEntry>());
             }
 
             if (!SceneNameToSceneHandles[networkManager][scene.name].ContainsKey(scene.handle))
@@ -592,11 +594,11 @@ namespace Unity.Netcode.TestHelpers.Runtime
             return m_InvalidScene;
         }
 
-        public void PopulateLoadedScenes(ref Dictionary<int, Scene> scenesLoaded, NetworkManager networkManager)
+        public void PopulateLoadedScenes(ref Dictionary<NetworkSceneHandle, Scene> scenesLoaded, NetworkManager networkManager)
         {
             if (!SceneNameToSceneHandles.ContainsKey(networkManager))
             {
-                SceneNameToSceneHandles.Add(networkManager, new Dictionary<string, Dictionary<int, SceneEntry>>());
+                SceneNameToSceneHandles.Add(networkManager, new Dictionary<string, Dictionary<NetworkSceneHandle, SceneEntry>>());
             }
 
             var sceneCount = SceneManager.sceneCount;
@@ -617,7 +619,7 @@ namespace Unity.Netcode.TestHelpers.Runtime
 
                 if (!SceneNameToSceneHandles[networkManager].ContainsKey(scene.name))
                 {
-                    SceneNameToSceneHandles[networkManager].Add(scene.name, new Dictionary<int, SceneEntry>());
+                    SceneNameToSceneHandles[networkManager].Add(scene.name, new Dictionary<NetworkSceneHandle, SceneEntry>());
                 }
 
                 if (!SceneNameToSceneHandles[networkManager][scene.name].ContainsKey(scene.handle))
@@ -722,7 +724,9 @@ namespace Unity.Netcode.TestHelpers.Runtime
         {
             // Create a local copy of the spawned objects list since the spawn manager will adjust the list as objects
             // are despawned.
-#if UNITY_2023_1_OR_NEWER
+#if UNITY_6000_4_OR_NEWER
+            var networkObjects = Object.FindObjectsByType<NetworkObject>().Where((c) => c.IsSpawned);
+#elif UNITY_2023_1_OR_NEWER
             var networkObjects = Object.FindObjectsByType<NetworkObject>(FindObjectsSortMode.InstanceID).Where((c) => c.IsSpawned);
 #else
             var networkObjects = Object.FindObjectsOfType<NetworkObject>().Where((c) => c.IsSpawned);
@@ -829,7 +833,7 @@ namespace Unity.Netcode.TestHelpers.Runtime
 
                 if (!SceneNameToSceneHandles.ContainsKey(networkManager))
                 {
-                    SceneNameToSceneHandles.Add(networkManager, new Dictionary<string, Dictionary<int, SceneEntry>>());
+                    SceneNameToSceneHandles.Add(networkManager, new Dictionary<string, Dictionary<NetworkSceneHandle, SceneEntry>>());
                 }
 
                 var networkManagerScenes = SceneNameToSceneHandles[networkManager];

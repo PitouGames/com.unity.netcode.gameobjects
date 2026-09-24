@@ -420,7 +420,7 @@ namespace Unity.Netcode
         /// The Scene.Handle aspect allows us to distinguish duplicated in-scene placed NetworkObjects created by the loading
         /// of the same additive scene multiple times.
         /// </summary>
-        internal readonly Dictionary<uint, Dictionary<int, NetworkObject>> ScenePlacedObjects = new Dictionary<uint, Dictionary<int, NetworkObject>>();
+        internal readonly Dictionary<uint, Dictionary<NetworkSceneHandle, NetworkObject>> ScenePlacedObjects = new Dictionary<uint, Dictionary<NetworkSceneHandle, NetworkObject>>();
 
         /// <summary>
         /// This is used for the deserialization of in-scene placed NetworkObjects in order to distinguish duplicated in-scene
@@ -436,21 +436,21 @@ namespace Unity.Netcode
         /// The client links the server scene handle to the client local scene handle upon a scene being loaded
         /// <see cref="GetAndAddNewlyLoadedSceneByName"/>
         /// </summary>
-        internal Dictionary<int, Scene> ScenesLoaded = new Dictionary<int, Scene>();
+        internal Dictionary<NetworkSceneHandle, Scene> ScenesLoaded = new Dictionary<NetworkSceneHandle, Scene>();
 
         /// <summary>
         /// Since Scene.handle is unique per client, we create a look-up table between the client and server to associate server unique scene
         /// instances with client unique scene instances
         /// </summary>
-        internal Dictionary<int, int> ServerSceneHandleToClientSceneHandle = new Dictionary<int, int>();
-        internal Dictionary<int, int> ClientSceneHandleToServerSceneHandle = new Dictionary<int, int>();
+        internal Dictionary<NetworkSceneHandle, NetworkSceneHandle> ServerSceneHandleToClientSceneHandle = new Dictionary<NetworkSceneHandle, NetworkSceneHandle>();
+        internal Dictionary<NetworkSceneHandle, NetworkSceneHandle> ClientSceneHandleToServerSceneHandle = new Dictionary<NetworkSceneHandle, NetworkSceneHandle>();
 
         /// <summary>
         /// Add the client to server (and vice versa) scene handle lookup.
         /// Add the client-side handle to scene entry in the HandleToScene table.
         /// If it fails (i.e. already added) it returns false.
         /// </summary>
-        internal bool UpdateServerClientSceneHandle(int serverHandle, int clientHandle, Scene localScene)
+        internal bool UpdateServerClientSceneHandle(NetworkSceneHandle serverHandle, NetworkSceneHandle clientHandle, Scene localScene)
         {
             if (!ServerSceneHandleToClientSceneHandle.ContainsKey(serverHandle))
             {
@@ -483,7 +483,7 @@ namespace Unity.Netcode
         /// Removes the client to server (and vice versa) scene handles.
         /// If it fails (i.e. already removed) it returns false.
         /// </summary>
-        internal bool RemoveServerClientSceneHandle(int serverHandle, int clientHandle)
+        internal bool RemoveServerClientSceneHandle(NetworkSceneHandle serverHandle, NetworkSceneHandle clientHandle)
         {
             if (ServerSceneHandleToClientSceneHandle.ContainsKey(serverHandle))
             {
@@ -945,7 +945,7 @@ namespace Unity.Netcode
         /// value.  Scene handles are used to distinguish between in-scene placed NetworkObjects under this situation.
         /// </summary>
         /// <param name="serverSceneHandle"></param>
-        internal void SetTheSceneBeingSynchronized(int serverSceneHandle)
+        internal void SetTheSceneBeingSynchronized(NetworkSceneHandle serverSceneHandle)
         {
             var clientSceneHandle = serverSceneHandle;
             if (ServerSceneHandleToClientSceneHandle.ContainsKey(serverSceneHandle))
@@ -995,12 +995,12 @@ namespace Unity.Netcode
         /// </summary>
         /// <param name="globalObjectIdHash"></param>
         /// <returns></returns>
-        internal NetworkObject GetSceneRelativeInSceneNetworkObject(uint globalObjectIdHash, int? networkSceneHandle)
+        internal NetworkObject GetSceneRelativeInSceneNetworkObject(uint globalObjectIdHash, NetworkSceneHandle? networkSceneHandle)
         {
             if (ScenePlacedObjects.ContainsKey(globalObjectIdHash))
             {
-                var sceneHandle = SceneBeingSynchronized.handle;
-                if (networkSceneHandle.HasValue && networkSceneHandle.Value != 0)
+                NetworkSceneHandle sceneHandle = SceneBeingSynchronized.handle;
+                if (networkSceneHandle.HasValue && !networkSceneHandle.Value.IsEmpty())
                 {
                     sceneHandle = ServerSceneHandleToClientSceneHandle[networkSceneHandle.Value];
                 }
@@ -2312,7 +2312,9 @@ namespace Unity.Netcode
                 ScenePlacedObjects.Clear();
             }
 
-#if UNITY_2023_1_OR_NEWER
+#if UNITY_6000_4_OR_NEWER
+            var networkObjects = UnityEngine.Object.FindObjectsByType<NetworkObject>();
+#elif UNITY_2023_1_OR_NEWER
             var networkObjects = UnityEngine.Object.FindObjectsByType<NetworkObject>(FindObjectsSortMode.InstanceID);
 #else
             var networkObjects = UnityEngine.Object.FindObjectsOfType<NetworkObject>();
@@ -2332,7 +2334,7 @@ namespace Unity.Netcode
                 {
                     if (!ScenePlacedObjects.ContainsKey(globalObjectIdHash))
                     {
-                        ScenePlacedObjects.Add(globalObjectIdHash, new Dictionary<int, NetworkObject>());
+                        ScenePlacedObjects.Add(globalObjectIdHash, new Dictionary<NetworkSceneHandle, NetworkObject>());
                     }
 
                     if (!ScenePlacedObjects[globalObjectIdHash].ContainsKey(sceneHandle))
@@ -2378,7 +2380,7 @@ namespace Unity.Netcode
         /// Holds a list of scene handles (server-side relative) and NetworkObjects migrated into it
         /// during the current frame.
         /// </summary>
-        internal Dictionary<int, List<NetworkObject>> ObjectsMigratedIntoNewScene = new Dictionary<int, List<NetworkObject>>();
+        internal Dictionary<NetworkSceneHandle, List<NetworkObject>> ObjectsMigratedIntoNewScene = new Dictionary<NetworkSceneHandle, List<NetworkObject>>();
 
         /// <summary>
         /// Handles notifying clients when a NetworkObject has been migrated into a new scene
@@ -2466,7 +2468,7 @@ namespace Unity.Netcode
         }
 
 
-        private List<int> m_ScenesToRemoveFromObjectMigration = new List<int>();
+        private List<NetworkSceneHandle> m_ScenesToRemoveFromObjectMigration = new List<NetworkSceneHandle>();
 
         /// <summary>
         /// Should be invoked during PostLateUpdate just prior to the NetworkMessageManager processes its outbound message queue.
@@ -2523,7 +2525,7 @@ namespace Unity.Netcode
         // a client is synchronizing
         internal struct DeferredObjectsMovedEvent
         {
-            internal Dictionary<int, List<ulong>> ObjectsMigratedTable;
+            internal Dictionary<NetworkSceneHandle, List<ulong>> ObjectsMigratedTable;
         }
         internal List<DeferredObjectsMovedEvent> DeferredObjectsMovedEvents = new List<DeferredObjectsMovedEvent>();
 

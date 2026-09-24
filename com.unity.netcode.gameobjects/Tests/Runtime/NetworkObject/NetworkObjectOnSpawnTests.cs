@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using Unity.Netcode.TestHelpers.Runtime;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 
 namespace Unity.Netcode.RuntimeTests
@@ -326,7 +327,7 @@ namespace Unity.Netcode.RuntimeTests
             var gameObject = new GameObject();
             var networkObject = gameObject.AddComponent<NetworkObject>();
             networkObject.IsSpawned = true;
-            networkObject.SceneOriginHandle = 0;
+            networkObject.SceneOriginHandle = new NetworkSceneHandle();
             networkObject.IsSceneObject = false;
             // This validates invoking GetSceneOriginHandle will not throw an exception for a dynamically spawned NetworkObject
             // when the scene of origin handle is zero

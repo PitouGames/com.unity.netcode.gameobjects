@@ -1359,7 +1359,7 @@ namespace Unity.Netcode.Editor.CodeGen
             }
             var rpcHandlers = new List<(uint RpcMethodId, MethodDefinition RpcHandler, string RpcMethodName)>();
 
-            bool isEditorOrDevelopment = assemblyDefines.Contains("UNITY_EDITOR") || assemblyDefines.Contains("DEVELOPMENT_BUILD");
+            bool isEditorOrDevelopment = assemblyDefines.Contains("UNITY_EDITOR") || assemblyDefines.Contains("DEBUG");
 
             foreach (var methodDefinition in typeDefinition.Methods)
             {

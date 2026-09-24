@@ -32,7 +32,7 @@ namespace Unity.Netcode
         /// </summary>
         private const double k_DefaultAdjustmentRatio = 0.01d;
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if DEBUG
         private static ProfilerMarker s_SyncTime = new ProfilerMarker($"{nameof(NetworkManager)}.SyncTime");
 #endif
 
@@ -156,7 +156,7 @@ namespace Unity.Netcode
         /// </remarks>
         private void OnTickSyncTime()
         {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if DEBUG
             s_SyncTime.Begin();
 #endif
 
@@ -170,7 +170,7 @@ namespace Unity.Netcode
                 m_ConnectionManager.SendMessage(ref message, NetworkDelivery.Unreliable, m_ConnectionManager.ConnectedClientIds);
             }
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if DEBUG
             s_SyncTime.End();
 #endif
         }

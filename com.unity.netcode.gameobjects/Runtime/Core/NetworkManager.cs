@@ -39,7 +39,7 @@ namespace Unity.Netcode
         // RuntimeAccessModifiersILPP will make this `public`
         internal static readonly Dictionary<uint, RpcReceiveHandler> __rpc_func_table = new Dictionary<uint, RpcReceiveHandler>();
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR || UNITY_MP_TOOLS_NET_STATS_MONITOR_ENABLED_IN_RELEASE
+#if DEBUG || UNITY_MP_TOOLS_NET_STATS_MONITOR_ENABLED_IN_RELEASE
         // RuntimeAccessModifiersILPP will make this `public`
         internal static readonly Dictionary<uint, string> __rpc_name_table = new Dictionary<uint, string>();
 #endif
@@ -887,7 +887,7 @@ namespace Unity.Netcode
 
                 MessageManager.Hook(new NetworkManagerHooks(this));
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if DEBUG
                 MessageManager.Hook(new ProfilingHooks());
 #endif
 

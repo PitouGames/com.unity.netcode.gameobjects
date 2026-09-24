@@ -31,7 +31,11 @@ namespace Unity.Netcode.RuntimeTests
 
         public NetworkVariableTraitsComponent GetServerComponent()
         {
+#if UNITY_6000_4_OR_NEWER
+            foreach (var obj in Object.FindObjectsByType<NetworkVariableTraitsComponent>())
+#else
             foreach (var obj in Object.FindObjectsByType<NetworkVariableTraitsComponent>(FindObjectsSortMode.None))
+#endif
             {
                 if (obj.NetworkManager == m_ServerNetworkManager && obj.OwnerClientId == m_ClientNetworkManagers[0].LocalClientId)
                 {

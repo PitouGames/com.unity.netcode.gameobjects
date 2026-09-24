@@ -497,7 +497,11 @@ namespace Unity.Netcode.RuntimeTests.UniversalRpcTests
 
         protected void Clear()
         {
+#if UNITY_6000_4_OR_NEWER
+            foreach (var obj in Object.FindObjectsByType<UniversalRpcNetworkBehaviour>())
+#else
             foreach (var obj in Object.FindObjectsByType<UniversalRpcNetworkBehaviour>(FindObjectsSortMode.None))
+#endif
             {
                 obj.Received = string.Empty;
                 obj.ReceivedCount = 0;
@@ -519,9 +523,12 @@ namespace Unity.Netcode.RuntimeTests.UniversalRpcTests
 
         protected UniversalRpcNetworkBehaviour GetPlayerObject(ulong ownerClientId, ulong onClient)
         {
-            if (ownerClientId == NetworkManager.ServerClientId && !m_ServerNetworkManager.IsHost)
-            {
+            if (ownerClientId == NetworkManager.ServerClientId && !m_ServerNetworkManager.IsHost) {
+#if UNITY_6000_4_OR_NEWER
+                foreach (var obj in Object.FindObjectsByType<UniversalRpcNetworkBehaviour>())
+#else
                 foreach (var obj in Object.FindObjectsByType<UniversalRpcNetworkBehaviour>(FindObjectsSortMode.None))
+#endif
                 {
                     if (obj.name.StartsWith("Server Object") && obj.OwnerClientId == ownerClientId && obj.NetworkManager.LocalClientId == onClient)
                     {

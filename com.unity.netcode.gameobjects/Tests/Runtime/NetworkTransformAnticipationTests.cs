@@ -90,7 +90,11 @@ namespace Unity.Netcode.RuntimeTests
 
         public AnticipatedNetworkTransform GetServerComponent()
         {
+#if UNITY_6000_4_OR_NEWER
+            foreach (var obj in Object.FindObjectsByType<AnticipatedNetworkTransform>())
+#else
             foreach (var obj in Object.FindObjectsByType<AnticipatedNetworkTransform>(FindObjectsSortMode.None))
+#endif
             {
                 if (obj.NetworkManager == m_ServerNetworkManager && obj.OwnerClientId == m_ClientNetworkManagers[0].LocalClientId)
                 {
@@ -103,7 +107,11 @@ namespace Unity.Netcode.RuntimeTests
 
         public AnticipatedNetworkTransform GetOtherClientComponent()
         {
+#if UNITY_6000_4_OR_NEWER
+            foreach (var obj in Object.FindObjectsByType<AnticipatedNetworkTransform>())
+#else
             foreach (var obj in Object.FindObjectsByType<AnticipatedNetworkTransform>(FindObjectsSortMode.None))
+#endif
             {
                 if (obj.NetworkManager == m_ClientNetworkManagers[1] && obj.OwnerClientId == m_ClientNetworkManagers[0].LocalClientId)
                 {

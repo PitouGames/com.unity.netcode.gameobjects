@@ -50,7 +50,9 @@ namespace Unity.Netcode.RuntimeTests
         [UnityTest]
         public IEnumerator HiddenObjectsTest()
         {
-#if UNITY_2023_1_OR_NEWER
+#if UNITY_6000_4_OR_NEWER
+            yield return WaitForConditionOrTimeOut(() => Object.FindObjectsByType<NetworkVisibilityComponent>().Where((c) => c.IsSpawned).Count() == 2);
+#elif UNITY_2023_1_OR_NEWER
             yield return WaitForConditionOrTimeOut(() => Object.FindObjectsByType<NetworkVisibilityComponent>(FindObjectsSortMode.None).Where((c) => c.IsSpawned).Count() == 2);
 #else
             yield return WaitForConditionOrTimeOut(() => Object.FindObjectsOfType<NetworkVisibilityComponent>().Where((c) => c.IsSpawned).Count() == 2);
@@ -63,7 +65,9 @@ namespace Unity.Netcode.RuntimeTests
         [UnityTest]
         public IEnumerator HideShowAndDeleteTest()
         {
-#if UNITY_2023_1_OR_NEWER
+#if UNITY_6000_4_OR_NEWER
+            yield return WaitForConditionOrTimeOut(() => Object.FindObjectsByType<NetworkVisibilityComponent>().Where((c) => c.IsSpawned).Count() == 2);
+#elif UNITY_2023_1_OR_NEWER
             yield return WaitForConditionOrTimeOut(() => Object.FindObjectsByType<NetworkVisibilityComponent>(FindObjectsSortMode.None).Where((c) => c.IsSpawned).Count() == 2);
 #else
             yield return WaitForConditionOrTimeOut(() => Object.FindObjectsOfType<NetworkVisibilityComponent>().Where((c) => c.IsSpawned).Count() == 2);
@@ -74,7 +78,9 @@ namespace Unity.Netcode.RuntimeTests
 
             serverNetworkObject.NetworkHide(m_ClientNetworkManagers[0].LocalClientId);
 
-#if UNITY_2023_1_OR_NEWER
+#if UNITY_6000_4_OR_NEWER
+            yield return WaitForConditionOrTimeOut(() => Object.FindObjectsByType<NetworkVisibilityComponent>().Where((c) => c.IsSpawned).Count() == 1);
+#elif UNITY_2023_1_OR_NEWER
             yield return WaitForConditionOrTimeOut(() => Object.FindObjectsByType<NetworkVisibilityComponent>(FindObjectsSortMode.None).Where((c) => c.IsSpawned).Count() == 1);
 #else
             yield return WaitForConditionOrTimeOut(() => Object.FindObjectsOfType<NetworkVisibilityComponent>().Where((c) => c.IsSpawned).Count() == 1);

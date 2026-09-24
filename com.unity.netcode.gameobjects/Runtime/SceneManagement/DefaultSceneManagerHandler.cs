@@ -19,7 +19,7 @@ namespace Unity.Netcode
             public Scene Scene;
         }
 
-        internal Dictionary<string, Dictionary<int, SceneEntry>> SceneNameToSceneHandles = new Dictionary<string, Dictionary<int, SceneEntry>>();
+        internal Dictionary<string, Dictionary<NetworkSceneHandle, SceneEntry>> SceneNameToSceneHandles = new Dictionary<string, Dictionary<NetworkSceneHandle, SceneEntry>>();
 
         public AsyncOperation LoadSceneAsync(string sceneName, LoadSceneMode loadSceneMode, SceneEventProgress sceneEventProgress)
         {
@@ -46,7 +46,7 @@ namespace Unity.Netcode
         /// <summary>
         /// Stops tracking a specific scene
         /// </summary>
-        public void StopTrackingScene(int handle, string name, NetworkManager networkManager)
+        public void StopTrackingScene(NetworkSceneHandle handle, string name, NetworkManager networkManager)
         {
             if (SceneNameToSceneHandles.ContainsKey(name))
             {
@@ -68,7 +68,7 @@ namespace Unity.Netcode
         {
             if (!SceneNameToSceneHandles.ContainsKey(scene.name))
             {
-                SceneNameToSceneHandles.Add(scene.name, new Dictionary<int, SceneEntry>());
+                SceneNameToSceneHandles.Add(scene.name, new Dictionary<NetworkSceneHandle, SceneEntry>());
             }
 
             if (!SceneNameToSceneHandles[scene.name].ContainsKey(scene.handle))
@@ -167,7 +167,7 @@ namespace Unity.Netcode
         /// same application instance is still running, the same scenes are still loaded on the client, and
         /// upon reconnecting the client doesn't have to unload the scenes and then reload them)
         /// </summary>
-        public void PopulateLoadedScenes(ref Dictionary<int, Scene> scenesLoaded, NetworkManager networkManager)
+        public void PopulateLoadedScenes(ref Dictionary<NetworkSceneHandle, Scene> scenesLoaded, NetworkManager networkManager)
         {
             SceneNameToSceneHandles.Clear();
             var sceneCount = SceneManager.sceneCount;
@@ -176,7 +176,7 @@ namespace Unity.Netcode
                 var scene = SceneManager.GetSceneAt(i);
                 if (!SceneNameToSceneHandles.ContainsKey(scene.name))
                 {
-                    SceneNameToSceneHandles.Add(scene.name, new Dictionary<int, SceneEntry>());
+                    SceneNameToSceneHandles.Add(scene.name, new Dictionary<NetworkSceneHandle, SceneEntry>());
                 }
 
                 if (!SceneNameToSceneHandles[scene.name].ContainsKey(scene.handle))

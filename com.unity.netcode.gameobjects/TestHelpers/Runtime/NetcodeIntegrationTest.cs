@@ -834,11 +834,13 @@ namespace Unity.Netcode.TestHelpers.Runtime
                 m_PlayerNetworkObjects.Add(networkManager.LocalClientId, new Dictionary<ulong, NetworkObject>());
             }
 
-#if UNITY_2023_1_OR_NEWER
             // Get all player instances for the current client NetworkManager instance
+
+#if UNITY_6000_4_OR_NEWER
+            var clientPlayerClones = Object.FindObjectsByType<NetworkObject>().Where((c) => c.IsPlayerObject && c.OwnerClientId == networkManager.LocalClientId).ToList();
+#elif UNITY_2023_1_OR_NEWER
             var clientPlayerClones = Object.FindObjectsByType<NetworkObject>(FindObjectsSortMode.None).Where((c) => c.IsPlayerObject && c.OwnerClientId == networkManager.LocalClientId).ToList();
 #else
-            // Get all player instances for the current client NetworkManager instance
             var clientPlayerClones = Object.FindObjectsOfType<NetworkObject>().Where((c) => c.IsPlayerObject && c.OwnerClientId == networkManager.LocalClientId).ToList();
 #endif
             // Add this player instance to each client player entry
@@ -855,11 +857,13 @@ namespace Unity.Netcode.TestHelpers.Runtime
                     m_PlayerNetworkObjects[playerNetworkObject.NetworkManager.LocalClientId].Add(networkManager.LocalClientId, playerNetworkObject);
                 }
             }
-#if UNITY_2023_1_OR_NEWER
             // For late joining clients, add the remaining (if any) cloned versions of each client's player
+
+#if UNITY_6000_4_OR_NEWER
+            clientPlayerClones = Object.FindObjectsByType<NetworkObject>().Where((c) => c.IsPlayerObject && c.NetworkManager == networkManager).ToList();
+#elif UNITY_2023_1_OR_NEWER
             clientPlayerClones = Object.FindObjectsByType<NetworkObject>(FindObjectsSortMode.None).Where((c) => c.IsPlayerObject && c.NetworkManager == networkManager).ToList();
 #else
-            // For late joining clients, add the remaining (if any) cloned versions of each client's player
             clientPlayerClones = Object.FindObjectsOfType<NetworkObject>().Where((c) => c.IsPlayerObject && c.NetworkManager == networkManager).ToList();
 #endif
             foreach (var playerNetworkObject in clientPlayerClones)
@@ -887,7 +891,10 @@ namespace Unity.Netcode.TestHelpers.Runtime
 
             if (m_UseHost)
             {
-#if UNITY_2023_1_OR_NEWER
+
+#if UNITY_6000_4_OR_NEWER
+                var clientSideServerPlayerClones = Object.FindObjectsByType<NetworkObject>().Where((c) => c.IsPlayerObject && c.OwnerClientId == m_ServerNetworkManager.LocalClientId);
+#elif UNITY_2023_1_OR_NEWER
                 var clientSideServerPlayerClones = Object.FindObjectsByType<NetworkObject>(FindObjectsSortMode.None).Where((c) => c.IsPlayerObject && c.OwnerClientId == m_ServerNetworkManager.LocalClientId);
 #else
                 var clientSideServerPlayerClones = Object.FindObjectsOfType<NetworkObject>().Where((c) => c.IsPlayerObject && c.OwnerClientId == m_ServerNetworkManager.LocalClientId);
@@ -973,11 +980,13 @@ namespace Unity.Netcode.TestHelpers.Runtime
 
                     if (m_UseHost || m_ServerNetworkManager.IsHost)
                     {
-#if UNITY_2023_1_OR_NEWER
                         // Add the server player instance to all m_ClientSidePlayerNetworkObjects entries
+
+#if UNITY_6000_4_OR_NEWER
+                        var serverPlayerClones = Object.FindObjectsByType<NetworkObject>().Where((c) => c.IsPlayerObject && c.OwnerClientId == m_ServerNetworkManager.LocalClientId);
+#elif UNITY_2023_1_OR_NEWER
                         var serverPlayerClones = Object.FindObjectsByType<NetworkObject>(FindObjectsSortMode.None).Where((c) => c.IsPlayerObject && c.OwnerClientId == m_ServerNetworkManager.LocalClientId);
 #else
-                        // Add the server player instance to all m_ClientSidePlayerNetworkObjects entries
                         var serverPlayerClones = Object.FindObjectsOfType<NetworkObject>().Where((c) => c.IsPlayerObject && c.OwnerClientId == m_ServerNetworkManager.LocalClientId);
 #endif
                         foreach (var playerNetworkObject in serverPlayerClones)
@@ -1049,11 +1058,12 @@ namespace Unity.Netcode.TestHelpers.Runtime
 
                     if (m_UseHost || m_ServerNetworkManager.IsHost)
                     {
-#if UNITY_2023_1_OR_NEWER
                         // Add the server player instance to all m_ClientSidePlayerNetworkObjects entries
+#if UNITY_6000_4_OR_NEWER
+                        var serverPlayerClones = Object.FindObjectsByType<NetworkObject>().Where((c) => c.IsPlayerObject && c.OwnerClientId == m_ServerNetworkManager.LocalClientId);
+#elif UNITY_2023_1_OR_NEWER
                         var serverPlayerClones = Object.FindObjectsByType<NetworkObject>(FindObjectsSortMode.None).Where((c) => c.IsPlayerObject && c.OwnerClientId == m_ServerNetworkManager.LocalClientId);
 #else
-                        // Add the server player instance to all m_ClientSidePlayerNetworkObjects entries
                         var serverPlayerClones = Object.FindObjectsOfType<NetworkObject>().Where((c) => c.IsPlayerObject && c.OwnerClientId == m_ServerNetworkManager.LocalClientId);
 #endif
                         foreach (var playerNetworkObject in serverPlayerClones)
@@ -1301,7 +1311,9 @@ namespace Unity.Netcode.TestHelpers.Runtime
         /// </summary>
         protected void DestroySceneNetworkObjects()
         {
-#if UNITY_2023_1_OR_NEWER
+#if UNITY_6000_4_OR_NEWER
+            var networkObjects = Object.FindObjectsByType<NetworkObject>();
+#elif UNITY_2023_1_OR_NEWER
             var networkObjects = Object.FindObjectsByType<NetworkObject>(FindObjectsSortMode.InstanceID);
 #else
             var networkObjects = Object.FindObjectsOfType<NetworkObject>();
@@ -1988,7 +2000,11 @@ namespace Unity.Netcode.TestHelpers.Runtime
 
                 if (stage == NetworkUpdateStage.Update || stage == NetworkUpdateStage.FixedUpdate || stage == NetworkUpdateStage.PreLateUpdate)
                 {
+#if UNITY_6000_4_OR_NEWER
+                    foreach (var behaviour in Object.FindObjectsByType<NetworkBehaviour>())
+#else
                     foreach (var behaviour in Object.FindObjectsByType<NetworkBehaviour>(FindObjectsSortMode.None))
+#endif
                     {
                         var type = behaviour.GetType();
                         if (!s_UpdateFunctionCache.TryGetValue(type, out var updateData))

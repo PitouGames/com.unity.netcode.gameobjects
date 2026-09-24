@@ -26,7 +26,9 @@ namespace TestProject.RuntimeTests
         private bool FoundLoadedSceneObject()
         {
             m_LoadedSceneObject = null;
-#if UNITY_2023_1_OR_NEWER
+#if UNITY_6000_4_OR_NEWER
+            m_LoadedSceneObject = Object.FindObjectsByType<NetworkObject>().Where((c) => c.name.Contains(k_SceneObjectName)).FirstOrDefault();
+#elif UNITY_2023_1_OR_NEWER
             m_LoadedSceneObject = Object.FindObjectsByType<NetworkObject>(FindObjectsSortMode.InstanceID).Where((c) => c.name.Contains(k_SceneObjectName)).FirstOrDefault();
 #else
             m_LoadedSceneObject = Object.FindObjectsOfType<NetworkObject>().Where((c) => c.name.Contains(k_SceneObjectName)).FirstOrDefault();
@@ -37,7 +39,9 @@ namespace TestProject.RuntimeTests
         private bool FoundLoadedSceneObjects()
         {
             m_LoadedSceneOBjects.Clear();
-#if UNITY_2023_1_OR_NEWER
+#if UNITY_6000_4_OR_NEWER
+            var loadedInSceneObjects = Object.FindObjectsByType<NetworkObject>().Where((c) => c.name.Contains(k_SceneObjectName));
+#elif UNITY_2023_1_OR_NEWER
             var loadedInSceneObjects = Object.FindObjectsByType<NetworkObject>(FindObjectsSortMode.InstanceID).Where((c) => c.name.Contains(k_SceneObjectName));
 #else
             var loadedInSceneObjects = Object.FindObjectsOfType<NetworkObject>().Where((c) => c.name.Contains(k_SceneObjectName));

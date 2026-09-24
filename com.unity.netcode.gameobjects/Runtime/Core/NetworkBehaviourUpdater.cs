@@ -13,7 +13,7 @@ namespace Unity.Netcode
         private HashSet<NetworkObject> m_DirtyNetworkObjects = new HashSet<NetworkObject>();
         private HashSet<NetworkObject> m_PendingDirtyNetworkObjects = new HashSet<NetworkObject>();
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if DEBUG
         private ProfilerMarker m_NetworkBehaviourUpdate = new ProfilerMarker($"{nameof(NetworkBehaviour)}.{nameof(NetworkBehaviourUpdate)}");
 #endif
 
@@ -29,7 +29,7 @@ namespace Unity.Netcode
         /// <param name="forceSend">internal only, when changing ownership we want to send this before the change in ownership message</param>
         internal void NetworkBehaviourUpdate(bool forceSend = false)
         {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if DEBUG
             m_NetworkBehaviourUpdate.Begin();
 #endif
             try
@@ -122,7 +122,7 @@ namespace Unity.Netcode
             }
             finally
             {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if DEBUG
                 m_NetworkBehaviourUpdate.End();
 #endif
             }

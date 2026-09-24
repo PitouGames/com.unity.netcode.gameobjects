@@ -81,7 +81,7 @@ Debug builds do allow for the possibility of applying artificial network conditi
 To set the latency, jitter and packet-loss percentage values for develop builds we need the following code to execute before `NetworkManager` attempts to connect (changing the values of the parameters as desired):
 
 ```
-#if DEVELOPMENT_BUILD && !UNITY_EDITOR
+#if DEBUG && !UNITY_EDITOR
         NetworkManager.Singleton.GetComponent<UnityTransport>().SetDebugSimulatorParameters(
             packetDelay: 120,
             packetJitter: 5,

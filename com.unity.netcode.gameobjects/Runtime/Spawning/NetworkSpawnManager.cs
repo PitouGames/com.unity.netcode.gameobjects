@@ -794,7 +794,7 @@ namespace Unity.Netcode
 
             // Always check to make sure our scene of origin is properly set for in-scene placed NetworkObjects
             // Note: Always check SceneOriginHandle directly at this specific location.
-            if (networkObject.IsSceneObject != false && networkObject.SceneOriginHandle == 0)
+            if (networkObject.IsSceneObject != false && networkObject.SceneOriginHandle.IsEmpty())
             {
                 networkObject.SceneOrigin = networkObject.gameObject.scene;
             }
@@ -940,7 +940,9 @@ namespace Unity.Netcode
         // Makes scene objects ready to be reused
         internal void ServerResetShudownStateForSceneObjects()
         {
-#if UNITY_2023_1_OR_NEWER
+#if UNITY_6000_4_OR_NEWER
+            var networkObjects = UnityEngine.Object.FindObjectsByType<NetworkObject>().Where((c) => c.IsSceneObject != null && c.IsSceneObject == true);
+#elif UNITY_2023_1_OR_NEWER
             var networkObjects = UnityEngine.Object.FindObjectsByType<NetworkObject>(FindObjectsSortMode.InstanceID).Where((c) => c.IsSceneObject != null && c.IsSceneObject == true);
 #else
             var networkObjects = UnityEngine.Object.FindObjectsOfType<NetworkObject>().Where((c) => c.IsSceneObject != null && c.IsSceneObject == true);
@@ -975,7 +977,9 @@ namespace Unity.Netcode
 
         internal void DespawnAndDestroyNetworkObjects()
         {
-#if UNITY_2023_1_OR_NEWER
+#if UNITY_6000_4_OR_NEWER
+            var networkObjects = UnityEngine.Object.FindObjectsByType<NetworkObject>();
+#elif UNITY_2023_1_OR_NEWER
             var networkObjects = UnityEngine.Object.FindObjectsByType<NetworkObject>(FindObjectsSortMode.InstanceID);
 #else
             var networkObjects = UnityEngine.Object.FindObjectsOfType<NetworkObject>();
@@ -1035,7 +1039,9 @@ namespace Unity.Netcode
 
         internal void DestroySceneObjects()
         {
-#if UNITY_2023_1_OR_NEWER
+#if UNITY_6000_4_OR_NEWER
+            var networkObjects = UnityEngine.Object.FindObjectsByType<NetworkObject>();
+#elif UNITY_2023_1_OR_NEWER
             var networkObjects = UnityEngine.Object.FindObjectsByType<NetworkObject>(FindObjectsSortMode.InstanceID);
 #else
             var networkObjects = UnityEngine.Object.FindObjectsOfType<NetworkObject>();
@@ -1066,7 +1072,9 @@ namespace Unity.Netcode
 
         internal void ServerSpawnSceneObjectsOnStartSweep()
         {
-#if UNITY_2023_1_OR_NEWER
+#if UNITY_6000_4_OR_NEWER
+            var networkObjects = UnityEngine.Object.FindObjectsByType<NetworkObject>();
+#elif UNITY_2023_1_OR_NEWER
             var networkObjects = UnityEngine.Object.FindObjectsByType<NetworkObject>(FindObjectsSortMode.InstanceID);
 #else
             var networkObjects = UnityEngine.Object.FindObjectsOfType<NetworkObject>();
