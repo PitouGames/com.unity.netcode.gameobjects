@@ -3,8 +3,8 @@ using UnityEngine;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using UnityEngine.SceneManagement;
-#if ENABLE_RELAY_SERVICE
 using System;
+#if ENABLE_RELAY_SERVICE
 using Unity.Services.Core;
 using Unity.Services.Authentication;
 #endif
@@ -23,8 +23,10 @@ public class ConnectionModeScript : MonoBehaviour
     [SerializeField]
     private GameObject m_JoinCodeInput;
 
+#if ENABLE_RELAY_SERVICE
     [SerializeField]
     private int m_MaxConnections = 10;
+#endif
 
     [SerializeField]
     private LoadSceneMode m_ClientSynchronizationMode;
@@ -123,12 +125,14 @@ public class ConnectionModeScript : MonoBehaviour
 
     private void OnServicesInitialized()
     {
+#if ENABLE_RELAY_SERVICE
         if (HasRelaySupport())
         {
             m_JoinCodeInput.SetActive(true);
             m_ConnectionModeButtons?.SetActive(false || AuthenticationService.Instance.IsSignedIn);
             m_AuthenticationButtons?.SetActive(NetworkManager.Singleton && !NetworkManager.Singleton.IsListening && !AuthenticationService.Instance.IsSignedIn);
         }
+#endif
     }
 
     /// <summary>

@@ -4,6 +4,8 @@ using Unity.Netcode.Transports.UTP;
 #if ENABLE_RELAY_SERVICE
 using Unity.Services.Core;
 using Unity.Services.Authentication;
+#else
+using System.Threading.Tasks;
 #endif
 
 public class UIController : MonoBehaviour
@@ -64,6 +66,8 @@ public class UIController : MonoBehaviour
             JoinCode.SetActive(true);
             AuthButton.SetActive(false);
         }
+#else
+        await Task.CompletedTask;
 #endif
     }
 }
