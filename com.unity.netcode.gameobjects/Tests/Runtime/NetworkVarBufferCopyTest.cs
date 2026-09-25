@@ -71,7 +71,7 @@ namespace Unity.Netcode.RuntimeTests
 
         public class DummyNetBehaviour : NetworkBehaviour
         {
-            public DummyNetVar NetVar = new DummyNetVar();
+            internal DummyNetVar NetVar = new DummyNetVar();
 
             public override void OnNetworkSpawn()
             {

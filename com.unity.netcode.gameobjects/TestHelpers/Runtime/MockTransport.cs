@@ -28,8 +28,8 @@ namespace Unity.Netcode.TestHelpers.Runtime
         public float PacketDropRate;
         public float LatencyJitter;
 
-        public Dictionary<ulong, int> LastSentSequence = new Dictionary<ulong, int>();
-        public Dictionary<ulong, int> LastReceivedSequence = new Dictionary<ulong, int>();
+        internal Dictionary<ulong, int> LastSentSequence = new Dictionary<ulong, int>();
+        internal Dictionary<ulong, int> LastReceivedSequence = new Dictionary<ulong, int>();
 
         public NetworkManager NetworkManager;
 

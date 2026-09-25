@@ -9,6 +9,7 @@ namespace Unity.Netcode
     /// Partially solves for message loss. Unclamped lerping helps hide this, but not completely
     /// </summary>
     /// <typeparam name="T">The type of interpolated value</typeparam>
+    [Serializable]
     public abstract class BufferedLinearInterpolator<T> where T : struct
     {
         internal float MaxInterpolationBound = 3.0f;

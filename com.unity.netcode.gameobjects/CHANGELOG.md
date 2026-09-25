@@ -8,6 +8,10 @@ Additional documentation and release notes are available at [Multiplayer Documen
 
 ## [Unreleased]
 
+### Added
+
+- Added Serializable and NonSerialized attributes
+
 ### Changed
 
 - First pass of CoreCLR engine API changes.
